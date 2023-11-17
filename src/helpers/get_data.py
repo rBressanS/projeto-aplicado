@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Iterable
 import pandas as pd
 
 
@@ -11,7 +10,14 @@ def get_all_csv_data(directory: Path) -> pd.DataFrame:
     csv_files = list(directory.glob("*.csv"))
     if not csv_files:
         return None
-    return pd.concat([pd.read_csv(file, decimal=".", sep=",") for file in csv_files])
+    dfs = []
+    for file in csv_files:
+        df = pd.read_csv(file, decimal=".", sep=",")
+        df["file"] = file.name
+        df.index = pd.to_datetime(df["time"], format="%H:%M:%S.%f")
+        df = df.resample("5S").last().interpolate(method="time")
+        dfs.append(df)
+    return pd.concat(dfs)
 
 
 def get_all_trips(route_dir: Path) -> dict:
@@ -30,8 +36,11 @@ def get_all_routes(driver_dir: Path) -> dict:
     }
 
 
-def get_data() -> dict:
-    data_path = Path.cwd() / "data"
+def get_data(data_path: str = None) -> dict:
+    if data_path is None:
+        data_path = Path.cwd() / "data"
+    else:
+        data_path = Path(data_path)
     return {
         normalize(driver.name): get_all_routes(driver)
         for driver in data_path.iterdir()
