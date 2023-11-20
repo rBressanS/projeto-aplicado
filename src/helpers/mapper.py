@@ -9,9 +9,10 @@ def mapper(func, data):
             for route in data[driver]:
                 for trip_name in data[driver][route]:
                     trip: pd.DataFrame = data[driver][route][trip_name]
-                    futures.append(
-                        (executor.submit(func, trip), driver, route, trip_name)
-                    )
+                    if trip is not None:
+                        futures.append(
+                            (executor.submit(func, trip), driver, route, trip_name)
+                        )
         for future, driver, route, trip_name in futures:
             data[driver][route][trip_name] = future.result()
     return data

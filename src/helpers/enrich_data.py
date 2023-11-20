@@ -20,5 +20,8 @@ def enrich_data(trip: pd.DataFrame):
     trip[enriched_column_names.aceleracao_calculada_absoluta] = trip[
         enriched_column_names.aceleracao_calculada
     ].abs()
-    trip = trip[trip[column_names.velocidade_veiculo] > 0]
+    trip = trip[
+        (trip[column_names.velocidade_veiculo] != 0)
+        & (trip[enriched_column_names.aceleracao_calculada] > 0)
+    ]
     return trip
